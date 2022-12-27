@@ -31,7 +31,8 @@ function putmarkers_until_border!(r::Robot, side::HorizonSide)::Int
     return n_steps
 end
 
-function mark_cross!(r::Robot)#задача 1
+#1-ая задач
+function mark_cross!(r::Robot)
     for side in (Nord, Sud, West, Ost)
         n_steps = putmarkers_until_border!(r, side)
         moves!(r, inverse_side(side), n_steps)
@@ -39,8 +40,9 @@ function mark_cross!(r::Robot)#задача 1
     putmarker!(r)
 end
 
-function mark_perimetr!(r::Robot)#задача 2
-    steps_to_left_down_angle = [0, 0] # (шаги_вниз, шаги_влево)
+#2-ая задача
+function mark_perimetr!(r::Robot)
+    steps_to_left_down_angle = [0, 0] 
     steps_to_left_down_angle[1] = move_until_border!(r, Sud)
     steps_to_left_down_angle[2] = move_until_border!(r, West)
     for side in (Nord, Ost, Sud, West)
@@ -51,7 +53,7 @@ function mark_perimetr!(r::Robot)#задача 2
 end
 
 
-function get_left_down_angle!(r::Robot)::NTuple{2, Int}# перемещает робота в нижний левый угол, возвращает количество шагов
+function get_left_down_angle!(r::Robot)::NTuple{2, Int}
     steps_to_left_border = move_until_border!(r, West)
     steps_to_down_border = move_until_border!(r, Sud)
     return (steps_to_down_border, steps_to_left_border)
@@ -62,8 +64,8 @@ function get_to_origin!(r::Robot, steps_to_origin::NTuple{2, Int})
         moves!(r, side, steps_to_origin[i])
     end
 end
-
-function mark_fild!(r::Robot) #задача 3
+#3-ая задача
+function mark_fild!(r::Robot)
     steps_to_origin = get_left_down_angle!(r)
     putmarker!(r)
     while !isborder(r, Ost)
@@ -104,7 +106,8 @@ function inverse_side(sides::NTuple{2, HorizonSide})
     return new_sides
 end
 
-function X_mark_the_spot!(r::Robot) #задача 4
+#4-ая задача
+function X_mark_the_spot!(r::Robot)
     sides = (Nord, Ost, Sud, West)
     for i in 1:4
         first_side = sides[i]
@@ -116,7 +119,7 @@ function X_mark_the_spot!(r::Robot) #задача 4
     putmarker!(r)
 end
 
-#Задача 5
+#5-ая задача
 function get_left_down_angle_modified!(r::Robot)::Vector{Tuple{HorizonSide, Int}}
     steps = []
     while !(isborder(r, West) && isborder(r, Sud))
@@ -180,9 +183,9 @@ function mark_inner_rectangle!(r::Robot)
     make_way_back!(r, steps)
 end
 
-#Задача 6
-
-function mark_perimetr_with_inner_border!(r::Robot) # подзадача а
+#6-ая задача
+#Пункта а
+function mark_perimetr_with_inner_border!(r::Robot) 
     path = get_left_down_angle_modified!(r)
     mark_perimetr!(r)
     make_way_back!(r, path)
@@ -201,7 +204,8 @@ function moves_if_possible!(r::Robot, side::HorizonSide, n_steps::Int)::Bool
     return false
 end
 
-function mark_four_cells!(r::Robot) #подзадача б 
+#Пункт б
+function mark_four_cells!(r::Robot)
     path = get_left_down_angle_modified!(r)
     n_steps_to_sud = 0
     n_steps_to_west = 0
@@ -230,7 +234,7 @@ function mark_four_cells!(r::Robot) #подзадача б
     make_way_back!(r, path)
 end
 
-#Задача 7
+#7-ая задача
 
 function find_space!(r::Robot, side::HorizonSide)
     n_steps = 1
@@ -247,7 +251,7 @@ function move_through!(r::Robot, side::HorizonSide)
     move!(r, side)
 end
 
-#Задача 8
+#8-ая задача
 
 function move_if_not_marker!(r::Robot, side::HorizonSide)::Bool
     
@@ -295,7 +299,7 @@ function move_snake_until_marker!(r::Robot)
     end
 end
 
-#задача 9
+#9-ая задача
 
 
 function mark_chess!(r::Robot)
@@ -350,7 +354,7 @@ function mark_chess!(r::Robot)
     get_to_origin!(r, steps)
 end
 
-#Задача 10
+#10-ая задача
 
 function mark_square!(r::Robot, n::Int)
     
@@ -394,4 +398,39 @@ function moves_if_possible_numeric!(r::Robot, side::HorizonSide, n_steps::Int)::
     end
 
     return n_steps
+end
+function mark_chess!(r::Robot, n::Int)
+    
+    steps = get_left_down_angle!(r)
+    side = Nord
+    to_mark = true
+
+    steps_to_ost_border = move_until_border!(r, Ost)
+    move_until_border!(r, West)
+    last_side = steps_to_ost_border % 2 == 1 ? Sud : Nord
+    last_n_steps = 0
+
+    while !isborder(r, Ost)
+        while !isborder(r, side)
+            if to_mark
+                mark_square!(r, n)
+            end
+
+            last_n_steps = moves_if_possible_numeric!(r, side, n)
+            if last_n_steps == 0 && !isborder(r, side)
+                to_mark = !to_mark
+            end
+        end
+
+        if to_mark
+            mark_square!(r, n)
+        end
+
+        to_mark = !to_mark
+
+        moves_if_possible!(r, Ost, n)
+        moves!(r,inverse_side(side), n - last_n_steps)
+        side = inverse_side(side)
+    end
+
 end
